@@ -4,7 +4,9 @@ import {
   createItem, 
   createMatch, 
   createDashboardStats,
-  createAdminAnalytics
+  createAdminAnalytics,
+  createConversation,
+  createMessage
 } from '../factories';
 
 export const mockUser = createUser({
@@ -61,6 +63,7 @@ export const mockItems = [
     location: 'Central Park Cafe',
     status: 'pending',
     matchesCount: 3,
+    imageUrl: '/mock-macbook.jpg',
   }),
   createItem({
     id: 'ITM-2',
@@ -70,6 +73,7 @@ export const mockItems = [
     location: 'Subway Station',
     status: 'resolved',
     matchesCount: 1,
+    imageUrl: '/mock-airpods.jpg',
   }),
   createItem({
     id: 'ITM-3',
@@ -89,11 +93,11 @@ export const mockMatches = [
     foundItemId: 'ITM-F1',
     status: 'pending',
     scores: {
-      visual: 85,
-      semantic: 92,
-      location: 95,
-      time: 98,
-      overall: 94
+      visual: 0.85,
+      semantic: 0.92,
+      location: 0.95,
+      time: 0.98,
+      overall: 0.94
     },
     lostItem: createItem({
       id: 'ITM-1',
@@ -102,6 +106,7 @@ export const mockMatches = [
       type: 'lost',
       dateReported: 'Oct 12, 2023',
       location: 'Central Station',
+      imageUrl: '/mock-backpack-1.jpg',
     }),
     foundItem: createItem({
       id: 'ITM-F1',
@@ -110,9 +115,92 @@ export const mockMatches = [
       type: 'found',
       dateReported: 'Oct 13, 2023',
       location: 'Red Line Train',
+      imageUrl: '/mock-backpack-2.jpg',
     }),
   }),
 ];
 
 export const mockDashboardStats = createDashboardStats();
 export const mockAdminAnalytics = createAdminAnalytics();
+
+export const mockConversations = [
+  createConversation({
+    id: 'CONV-1',
+    title: 'Support Team',
+    unreadCount: 1,
+    updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 mins ago
+    messages: [
+      createMessage({
+        conversationId: 'CONV-1',
+        senderId: 'USR-1',
+        senderName: 'You',
+        content: 'Hi, I need help with my recent claim.',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+      }),
+      createMessage({
+        conversationId: 'CONV-1',
+        senderId: 'SUP-1',
+        senderName: 'Support Team',
+        content: 'Hello! I can help you with your claim. Can you provide the match ID?',
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+      })
+    ]
+  }),
+  createConversation({
+    id: 'CONV-2',
+    title: 'Recovery Officer',
+    unreadCount: 0,
+    updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+    messages: [
+      createMessage({
+        conversationId: 'CONV-2',
+        senderId: 'OFF-1',
+        senderName: 'Recovery Officer',
+        content: 'We need additional verification to process your claim for the MacBook Pro.',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      }),
+      createMessage({
+        conversationId: 'CONV-2',
+        senderId: 'USR-1',
+        senderName: 'You',
+        content: 'Sure, I can send a copy of the receipt. Where should I upload it?',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 23.5).toISOString(),
+      })
+    ]
+  }),
+  createConversation({
+    id: 'CONV-3',
+    title: 'System Notifications',
+    unreadCount: 3,
+    updatedAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(), // 5 mins ago
+    messages: [
+      createMessage({
+        conversationId: 'CONV-3',
+        senderId: 'SYS',
+        senderName: 'System',
+        content: 'Match discovered for your reported item: Blue MacBook Pro 14".',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+      }),
+      createMessage({
+        conversationId: 'CONV-3',
+        senderId: 'SYS',
+        senderName: 'System',
+        content: 'Your claim has been submitted and is pending review.',
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+      }),
+      createMessage({
+        conversationId: 'CONV-3',
+        senderId: 'SYS',
+        senderName: 'System',
+        content: 'Your claim for item ITM-2 has been approved!',
+        createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+      })
+    ]
+  })
+];
+
+mockConversations.forEach(c => {
+  if (c.messages && c.messages.length > 0) {
+    c.lastMessage = c.messages[c.messages.length - 1];
+  }
+});

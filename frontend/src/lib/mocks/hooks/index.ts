@@ -7,9 +7,18 @@ import {
   mockItems, 
   mockMatches, 
   mockDashboardStats, 
-  mockAdminAnalytics 
+  mockAdminAnalytics,
+  mockConversations
 } from '../data';
-import { UserDTO, NotificationDTO, ItemDTO, MatchDTO, DashboardStatsDTO, AdminAnalyticsDTO } from '../types';
+import { 
+  UserDTO, 
+  NotificationDTO, 
+  ItemDTO, 
+  MatchDTO, 
+  DashboardStatsDTO, 
+  AdminAnalyticsDTO,
+  ConversationDTO
+} from '../types';
 
 // Simulate network delay
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
@@ -120,4 +129,22 @@ export function useMockAdminAnalytics() {
   }, []);
 
   return { data, isLoading };
+}
+
+export function useMockConversations() {
+  const [data, setData] = useState<ConversationDTO[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    delay(800).then(() => {
+      if (mounted) {
+        setData(mockConversations);
+        setIsLoading(false);
+      }
+    });
+    return () => { mounted = false; };
+  }, []);
+
+  return { data, setData, isLoading };
 }

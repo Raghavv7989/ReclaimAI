@@ -12,8 +12,12 @@ from app.config import get_settings
 from app.models.base import Base
 
 # Import all models so Alembic can detect them
-# from app.models.user import User  # noqa: F401 — uncomment in Phase 1
-# from app.models.item import Item  # noqa: F401 — uncomment in Phase 2
+from app.models.user import User
+from app.models.item import Item
+from app.models.match import Match
+from app.models.claim import Claim
+from app.models.message import Conversation, Message
+from app.models.notification import Notification
 
 config = context.config
 if config.config_file_name is not None:

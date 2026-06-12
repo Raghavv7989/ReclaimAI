@@ -81,3 +81,22 @@ export type AdminAnalyticsDTO = {
   matchTrendData: Array<{ name: string; matches: number; claims: number }>;
   resolutionTrendData: Array<{ month: string; resolved: number }>;
 };
+
+export type MessageDTO = {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderName: string;
+  content: string;
+  createdAt: string;
+};
+
+export type ConversationDTO = {
+  id: string;
+  participantIds: string[];
+  title: string;
+  lastMessage?: MessageDTO;
+  unreadCount: number;
+  updatedAt: string;
+  messages?: MessageDTO[]; // Included for UI convenience
+};

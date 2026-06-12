@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Search, Filter, MoreHorizontal, FileDown, Trash2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -26,6 +27,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useMockItems } from '@/lib/mocks/hooks';
 
 export default function AdminClaimsPage() {
+  const router = useRouter();
   const { data: claims, isLoading } = useMockItems();
   const [selectedClaims, setSelectedClaims] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,8 +142,19 @@ export default function AdminClaimsPage() {
                 </TableRow>
               ) : (
                 filteredClaims.map((claim) => (
-                  <TableRow key={claim.id} className="group">
-                    <TableCell className="text-center">
+                  <TableRow 
+                    key={claim.id} 
+                    className="group cursor-pointer hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:bg-muted/50"
+                    tabIndex={0}
+                    onClick={() => router.push(`/item/${claim.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        router.push(`/item/${claim.id}`);
+                      }
+                    }}
+                  >
+                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
                       <Checkbox 
                         checked={selectedClaims.includes(claim.id)} 
                         onCheckedChange={() => toggleClaim(claim.id)}
@@ -158,13 +171,13 @@ export default function AdminClaimsPage() {
                     <TableCell>
                       <StatusBadge status={claim.status} />
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
                         <DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="opacity-0 group-hover:opacity-100 focus:opacity-100" />}>
                           <MoreHorizontal className="h-4 w-4" />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem>View Details</DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => router.push(`/item/${claim.id}`)}>View Details</DropdownMenuItem>
                           <DropdownMenuItem>Update Status</DropdownMenuItem>
                           <DropdownMenuItem>Contact User</DropdownMenuItem>
                         </DropdownMenuContent>

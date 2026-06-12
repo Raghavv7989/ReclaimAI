@@ -8,14 +8,18 @@ import { StatCard } from '@/components/ui/stat-card';
 import { NotificationCard } from '@/components/ui/notification-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useMockDashboardStats, useMockNotifications } from '@/lib/mocks/hooks';
+import { useMockDashboardStats, useMockNotifications, useMockMatches } from '@/lib/mocks/hooks';
+import { useRouter } from 'next/navigation';
 
 export default function DashboardOverviewPage() {
   const { data: stats, isLoading: isLoadingStats } = useMockDashboardStats();
   const { data: notifications, isLoading: isLoadingNotifs } = useMockNotifications();
+  const { data: matches, isLoading: isLoadingMatches } = useMockMatches();
+  const router = useRouter();
 
   // Get recent 3 notifications for activity
   const recentActivity = notifications.slice(0, 3);
+  const topMatches = matches.slice(0, 3);
 
   return (
     <div className="space-y-6">
@@ -59,23 +63,27 @@ export default function DashboardOverviewPage() {
               value={stats.activeClaims}
               icon={Package}
               trend={{ value: stats.activeClaimsTrend, label: "from last month" }}
+              href="/items"
             />
             <StatCard
               title="Pending Matches"
               value={stats.pendingMatches}
               icon={SearchCode}
               trend={{ value: stats.pendingMatchesTrend, label: "new this week" }}
+              href="/matches"
             />
             <StatCard
               title="Items Recovered"
               value={stats.itemsRecovered}
               icon={CheckCircle2}
+              href="/items"
             />
             <StatCard
               title="Success Rate"
               value={`${stats.successRate}%`}
               icon={ArrowUpRight}
               trend={{ value: stats.successRateTrend, label: "vs average" }}
+              href="/dashboard"
             />
           </>
         )}
@@ -113,6 +121,11 @@ export default function DashboardOverviewPage() {
                     timestamp={activity.createdAt}
                     type={activity.type}
                     isRead={true}
+                    onClick={() => {
+                      if (activity.actionUrl) {
+                        router.push(activity.actionUrl);
+                      }
+                    }}
                   />
                 ))}
               </div>
@@ -133,15 +146,41 @@ export default function DashboardOverviewPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <EmptyState
-              icon={SearchCode}
-              title="No matches yet"
-              description="Our AI is scanning the network. We'll notify you when we find a match."
-              action={{
-                label: "Report another item",
-                onClick: () => window.location.href = '/report/lost'
-              }}
-            />
+            {isLoadingMatches ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <Skeleton key={i} className="h-16 w-full rounded-lg" />
+                ))}
+              </div>
+            ) : topMatches.length > 0 ? (
+              <div className="space-y-3">
+                {topMatches.map(match => (
+                  <Link 
+                    key={match.id} 
+                    href={`/matches/${match.id}`}
+                    className="block p-3 border rounded-lg hover:bg-muted/50 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+                  >
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <p className="text-sm font-medium">Match {match.id.substring(0,6)}</p>
+                        <p className="text-xs text-muted-foreground">{Math.round(match.scores.overall * 100)}% Confidence</p>
+                      </div>
+                      <ArrowUpRight className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <EmptyState
+                icon={SearchCode}
+                title="No matches yet"
+                description="Our AI is scanning the network. We'll notify you when we find a match."
+                action={{
+                  label: "Report another item",
+                  onClick: () => router.push('/report/lost')
+                }}
+              />
+            )}
           </CardContent>
         </Card>
       </div>

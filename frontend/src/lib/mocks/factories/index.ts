@@ -8,7 +8,9 @@ import {
   NotificationType,
   ItemType,
   ItemStatus,
-  MatchStatus
+  MatchStatus,
+  MessageDTO,
+  ConversationDTO
 } from '../types';
 
 let idCounter = 1;
@@ -53,11 +55,11 @@ export const createMatch = (overrides?: Partial<MatchDTO>): MatchDTO => ({
   foundItemId: 'ITM-2',
   status: 'pending' as MatchStatus,
   scores: {
-    visual: 80,
-    semantic: 85,
-    location: 90,
-    time: 95,
-    overall: 88,
+    visual: 0.80,
+    semantic: 0.85,
+    location: 0.90,
+    time: 0.95,
+    overall: 0.88,
   },
   createdAt: new Date().toISOString(),
   ...overrides,
@@ -100,5 +102,24 @@ export const createAdminAnalytics = (overrides?: Partial<AdminAnalyticsDTO>): Ad
     { month: 'May', resolved: 112 },
     { month: 'Jun', resolved: 145 },
   ],
+  ...overrides,
+});
+
+export const createMessage = (overrides?: Partial<MessageDTO>): MessageDTO => ({
+  id: generateId('MSG'),
+  conversationId: 'CONV-1',
+  senderId: 'SYS',
+  senderName: 'System',
+  content: 'This is a mock message.',
+  createdAt: new Date().toISOString(),
+  ...overrides,
+});
+
+export const createConversation = (overrides?: Partial<ConversationDTO>): ConversationDTO => ({
+  id: generateId('CONV'),
+  participantIds: ['USR-1', 'SYS'],
+  title: 'Mock Conversation',
+  unreadCount: 0,
+  updatedAt: new Date().toISOString(),
   ...overrides,
 });

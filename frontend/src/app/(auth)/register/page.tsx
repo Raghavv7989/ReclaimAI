@@ -50,8 +50,8 @@ export default function RegisterPage() {
         throw new Error('Email is already registered');
       }
 
-      toast.success('Account created! Please verify your email.');
-      router.push('/verify-email?email=' + encodeURIComponent(data.email));
+      toast.success("Registration successful!");
+      router.push("/dashboard");
     } catch (error: unknown) {
       toast.error((error as Error).message || 'Failed to register account');
     } finally {

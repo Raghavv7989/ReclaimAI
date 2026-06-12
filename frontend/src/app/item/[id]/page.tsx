@@ -1,3 +1,5 @@
+import { ItemDetailClient } from './item-detail-client';
+
 export default async function PublicItemPage({
   params,
 }: {
@@ -5,10 +7,5 @@ export default async function PublicItemPage({
 }) {
   const { id } = await params;
 
-  return (
-    <div>
-      <h1>Item</h1>
-      <p>Item ID: {id}</p>
-    </div>
-  );
+  return <ItemDetailClient id={id} />;
 }

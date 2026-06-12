@@ -1,7 +1,8 @@
 'use client';
 
+import Link from 'next/link';
 import { Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SimilarityGauge } from '@/components/ui/similarity-gauge';
@@ -129,6 +130,9 @@ export default function AdminMatchesPage() {
                   </div>
 
                   <div className="space-y-3 mt-6">
+                    <Link href={`/matches/${match.id}`} className={buttonVariants({ variant: "outline", className: "w-full focus-visible:ring-2 focus-visible:ring-primary" })}>
+                      View Match Details
+                    </Link>
                     <Button className="w-full bg-success hover:bg-success/90 text-success-foreground">
                       <Check className="mr-2 h-4 w-4" /> Approve Match
                     </Button>

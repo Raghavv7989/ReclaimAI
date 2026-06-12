@@ -27,13 +27,13 @@ export function UserNav() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-full">
-        <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src="/avatars/01.png" alt="@johndoe" />
-            <AvatarFallback>JD</AvatarFallback>
-          </Avatar>
-        </Button>
+      <DropdownMenuTrigger
+        className="relative h-8 w-8 rounded-full focus-visible:outline-none"
+      >
+        <Avatar className="h-8 w-8 cursor-pointer">
+          <AvatarImage src="/avatars/01.png" alt="@johndoe" />
+          <AvatarFallback>JD</AvatarFallback>
+        </Avatar>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end">
         <DropdownMenuLabel className="font-normal">

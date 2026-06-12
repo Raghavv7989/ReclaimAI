@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Bell, Check, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +13,7 @@ import { toast } from 'sonner';
 import { useMockNotifications } from '@/lib/mocks/hooks';
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const { data: notifications, setData: setNotifications, isLoading } = useMockNotifications();
   const [filter, setFilter] = useState('all');
 
@@ -93,6 +95,9 @@ export default function NotificationsPage() {
                       setNotifications(notifications.map(n => 
                         n.id === notification.id ? { ...n, isRead: true } : n
                       ));
+                      if (notification.actionUrl) {
+                        router.push(notification.actionUrl);
+                      }
                     }}
                   />
                 </div>

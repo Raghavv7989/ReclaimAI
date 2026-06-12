@@ -1,3 +1,5 @@
+import { MatchDetailClient } from './match-detail-client';
+
 export default async function MatchDetailPage({
   params,
 }: {
@@ -5,10 +7,5 @@ export default async function MatchDetailPage({
 }) {
   const { id } = await params;
 
-  return (
-    <div>
-      <h1>Match Detail</h1>
-      <p>Match ID: {id}</p>
-    </div>
-  );
+  return <MatchDetailClient id={id} />;
 }

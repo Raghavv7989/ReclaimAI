@@ -50,24 +50,28 @@ export default function AnalyticsPage() {
               value={analytics.totalUsers.toLocaleString()}
               icon={Users}
               trend={{ value: analytics.totalUsersTrend, label: "from last month" }}
+              href="/admin/analytics"
             />
             <StatCard
               title="Active Items"
               value={analytics.activeItems.toLocaleString()}
               icon={Package}
               trend={{ value: analytics.activeItemsTrend, label: "from last month" }}
+              href="/admin/claims"
             />
             <StatCard
               title="AI Matches Generated"
               value={analytics.aiMatches.toLocaleString()}
               icon={SearchCode}
               trend={{ value: analytics.aiMatchesTrend, label: "from last month" }}
+              href="/admin/matches"
             />
             <StatCard
               title="Global Recovery Rate"
               value={`${analytics.globalRecoveryRate}%`}
               icon={ArrowUpRight}
               trend={{ value: analytics.globalRecoveryRateTrend, label: "vs average" }}
+              href="/admin/analytics"
             />
           </>
         )}
