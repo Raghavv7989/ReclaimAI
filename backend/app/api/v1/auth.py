@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta, timezone
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response, Cookie
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +20,6 @@ from app.models.auth import RefreshToken
 from app.models.user import User
 from app.schemas.auth import (
     MessageResponse,
-    RefreshTokenRequest,
     TokenResponse,
     UserCreate,
     UserLogin,
@@ -60,6 +59,7 @@ async def register(
 async def login(
     user_in: UserLogin,
     session: DBSessionDep,
+    response: Response,
 ):
     """Authenticate user and return tokens."""
     stmt = select(User).where(User.email == user_in.email, User.deleted_at.is_(None))
@@ -95,6 +95,16 @@ async def login(
     session.add(refresh_token)
     await session.commit()
 
+    # Set HttpOnly Cookie
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token_str,
+        httponly=True,
+        secure=True,
+        samesite="lax",
+        max_age=settings.jwt_refresh_token_expire_days * 24 * 60 * 60,
+    )
+
     return TokenResponse(
         access_token=access_token,
         refresh_token=refresh_token_str,
@@ -105,60 +115,72 @@ async def login(
 async def logout(
     current_user: CurrentUser,
     session: DBSessionDep,
-    token_in: RefreshTokenRequest,
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
 ):
     """Logout user by revoking the refresh token."""
-    stmt = select(RefreshToken).where(
-        RefreshToken.token == token_in.refresh_token,
-        RefreshToken.user_id == current_user.id,
-        RefreshToken.is_revoked.is_(False)
-    )
-    result = await session.execute(stmt)
-    refresh_token = result.scalar_one_or_none()
-
-    if not refresh_token:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Refresh token not found or already revoked",
+    if refresh_token:
+        stmt = select(RefreshToken).where(
+            RefreshToken.token == refresh_token,
+            RefreshToken.user_id == current_user.id,
+            RefreshToken.is_revoked.is_(False)
         )
+        result = await session.execute(stmt)
+        token_obj = result.scalar_one_or_none()
 
-    refresh_token.is_revoked = True
-    await session.commit()
+        if token_obj:
+            token_obj.is_revoked = True
+            await session.commit()
+
+    response.delete_cookie("refresh_token")
     return MessageResponse(message="Successfully logged out")
 
 
 @router.post("/refresh", response_model=TokenResponse)
 async def refresh(
-    token_in: RefreshTokenRequest,
     session: DBSessionDep,
+    response: Response,
+    refresh_token: str | None = Cookie(default=None),
 ):
-    """Issue a new access token using a refresh token."""
+    """Issue a new access token using an HttpOnly refresh token."""
+    if not refresh_token:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing refresh token",
+        )
+
     stmt = select(RefreshToken).where(
-        RefreshToken.token == token_in.refresh_token,
+        RefreshToken.token == refresh_token,
         RefreshToken.is_revoked.is_(False)
     )
     result = await session.execute(stmt)
-    refresh_token = result.scalar_one_or_none()
+    token_obj = result.scalar_one_or_none()
 
-    if not refresh_token:
+    if not token_obj:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
         )
 
-    if refresh_token.expires_at < datetime.now(timezone.utc):
+    if token_obj.expires_at < datetime.now(timezone.utc):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Refresh token expired",
         )
 
     # Issue new access token
-    access_token = create_access_token(subject=str(refresh_token.user_id))
+    access_token = create_access_token(subject=str(token_obj.user_id))
 
     return TokenResponse(
         access_token=access_token,
-        refresh_token=token_in.refresh_token,  # optionally rotate refresh token here
+        refresh_token=refresh_token,  # optionally rotate refresh token here
     )
+
+
+@router.get("/me", response_model=UserResponse)
+async def get_me(current_user: CurrentUser):
+    """Get the currently authenticated user."""
+    return current_user
 
 
 @router.post("/forgot-password", response_model=MessageResponse)
@@ -178,3 +200,4 @@ async def reset_password():
 async def verify_email():
     """Stub for email verification."""
     return MessageResponse(message="Email successfully verified.")
+

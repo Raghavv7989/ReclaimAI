@@ -138,7 +138,7 @@ async def test_refresh_token(async_client: AsyncClient, mock_db: MockSession):
 
     response = await async_client.post(
         "/api/v1/auth/refresh",
-        json={"refresh_token": "valid-refresh-token"}
+        cookies={"refresh_token": "valid-refresh-token"}
     )
     assert response.status_code == 200
     data = response.json()
@@ -170,7 +170,7 @@ async def test_logout(async_client: AsyncClient, mock_db: MockSession):
     response = await async_client.post(
         "/api/v1/auth/logout",
         headers={"Authorization": f"Bearer {access_token}"},
-        json={"refresh_token": "logout-refresh-token"}
+        cookies={"refresh_token": "logout-refresh-token"}
     )
     assert response.status_code == 200
     assert rt.is_revoked is True
