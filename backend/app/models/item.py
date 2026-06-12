@@ -21,6 +21,7 @@ class Item(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     
     # Store just the text representation of location for simple queries
     location_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    category: Mapped[str] = mapped_column(String(100), default="other", nullable=False, index=True)
     # Store PostGIS geometry point for radius queries
     location: Mapped[Optional[str]] = mapped_column(
         Geometry('POINT', srid=4326, spatial_index=True), 

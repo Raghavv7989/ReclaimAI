@@ -10,74 +10,8 @@ from app.dependencies import get_db_session
 from app.models.user import User
 from app.models.auth import RefreshToken
 from app.core.security import hash_password, create_access_token
+from tests.integration.conftest import MockSession
 
-
-class MockResult:
-    def __init__(self, data=None):
-        self.data = data
-
-    def scalar_one_or_none(self):
-        return self.data
-
-
-class MockSession:
-    def __init__(self):
-        self.users = {}
-        self.refresh_tokens = {}
-
-    async def execute(self, stmt):
-        stmt_str = str(stmt).lower()
-        
-        if "from users" in stmt_str:
-            for user in self.users.values():
-                return MockResult(user)
-            return MockResult(None)
-            
-        if "from refresh_tokens" in stmt_str:
-            for rt in self.refresh_tokens.values():
-                return MockResult(rt)
-            return MockResult(None)
-
-            
-        return MockResult(None)
-
-    def add(self, obj):
-        if isinstance(obj, User):
-            if not getattr(obj, "id", None):
-                obj.id = uuid.uuid4()
-            if getattr(obj, "role", None) is None:
-                obj.role = "user"
-            if getattr(obj, "is_active", None) is None:
-                obj.is_active = True
-            if getattr(obj, "is_verified", None) is None:
-                obj.is_verified = False
-            self.users[obj.id] = obj
-        elif isinstance(obj, RefreshToken):
-            if not getattr(obj, "id", None):
-                obj.id = uuid.uuid4()
-            self.refresh_tokens[obj.id] = obj
-
-    async def commit(self):
-        pass
-
-    async def refresh(self, obj):
-        pass
-
-
-
-@pytest.fixture
-def mock_db():
-    session = MockSession()
-    app.dependency_overrides[get_db_session] = lambda: session
-    yield session
-    app.dependency_overrides.clear()
-
-
-@pytest.fixture
-async def async_client():
-    transport = ASGITransport(app=app)
-    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        yield client
 
 
 @pytest.mark.asyncio
