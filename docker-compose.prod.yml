@@ -1,0 +1,77 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: reclaim-postgres-prod
+    environment:
+      POSTGRES_DB: \${POSTGRES_DB}
+      POSTGRES_USER: \${POSTGRES_USER}
+      POSTGRES_PASSWORD: \${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data_prod:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \${POSTGRES_USER} -d \${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    container_name: reclaim-backend-prod
+    environment:
+      DATABASE_URL: \${DATABASE_URL}
+      JWT_SECRET_KEY: \${JWT_SECRET_KEY}
+      AI_SERVICE_URL: http://ai_service:8001
+      CORS_ORIGINS: \${CORS_ORIGINS}
+      LOG_LEVEL: WARNING
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.ai_service
+    container_name: reclaim-ai-service-prod
+    volumes:
+      - model_cache_prod:/app/model_cache
+      - indexes_prod:/app/indexes
+    environment:
+      MODEL_CACHE_DIR: /app/model_cache
+      INDEX_DIR: /app/indexes
+      LOG_LEVEL: WARNING
+    restart: always
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    container_name: reclaim-frontend-prod
+    environment:
+      NEXT_PUBLIC_API_URL: \${PUBLIC_API_URL}
+    depends_on:
+      - backend
+    restart: always
+
+  nginx:
+    image: nginx:alpine
+    container_name: reclaim-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    restart: always
+
+volumes:
+  postgres_data_prod:
+  model_cache_prod:
+  indexes_prod:

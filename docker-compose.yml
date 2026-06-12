@@ -1,0 +1,79 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgis/postgis:16-3.4
+    container_name: reclaim-postgres
+    environment:
+      POSTGRES_DB: reclaim
+      POSTGRES_USER: reclaim
+      POSTGRES_PASSWORD: reclaim_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U reclaim -d reclaim"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.backend
+    container_name: reclaim-backend
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql+asyncpg://reclaim:reclaim_dev_password@postgres:5432/reclaim
+      JWT_SECRET_KEY: dev-secret-key-change-me-in-production-must-be-256-bits
+      AI_SERVICE_URL: http://ai_service:8001
+      CORS_ORIGINS: http://localhost:3000
+      LOG_LEVEL: INFO
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  ai_service:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.ai_service
+    container_name: reclaim-ai-service
+    ports:
+      - "8001:8001"
+    volumes:
+      - model_cache:/app/model_cache
+      - indexes:/app/indexes
+    environment:
+      MODEL_CACHE_DIR: /app/model_cache
+      INDEX_DIR: /app/indexes
+      LOG_LEVEL: INFO
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  frontend:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/Dockerfile.frontend
+    container_name: reclaim-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8000/api/v1
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  model_cache:
+  indexes:
