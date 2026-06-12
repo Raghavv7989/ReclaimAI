@@ -18,6 +18,7 @@ from app.models.match import Match
 from app.models.claim import Claim
 from app.models.message import Conversation, Message
 from app.models.notification import Notification
+from app.models.auth import RefreshToken
 
 config = context.config
 if config.config_file_name is not None:

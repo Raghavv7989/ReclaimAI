@@ -1,6 +1,7 @@
 """JWT and password hashing utilities."""
 
 from datetime import datetime, timedelta, timezone
+import secrets
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -44,3 +45,9 @@ def decode_access_token(token: str) -> dict[str, object]:
         return payload
     except JWTError as e:
         raise ValueError(f"Invalid token: {e}") from e
+
+
+def create_refresh_token() -> str:
+    """Generate a secure random string for a refresh token."""
+    return secrets.token_urlsafe(32)
+

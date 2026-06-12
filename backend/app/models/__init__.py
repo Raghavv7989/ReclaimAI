@@ -7,6 +7,7 @@ from .match import Match
 from .claim import Claim
 from .message import Conversation, Message
 from .notification import Notification
+from .auth import RefreshToken
 
 __all__ = [
     "Base",
@@ -17,4 +18,5 @@ __all__ = [
     "Conversation",
     "Message",
     "Notification",
+    "RefreshToken",
 ]
